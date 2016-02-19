@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">KolhazmanNewsApp</string>
+    <string name="connection_error">Connection Error</string>
+    <string name="xml_error">XML Error</string>
+    <string name="page_title">Title:</string>
+    <string name="updated">Updated:</string>
+</resources>
