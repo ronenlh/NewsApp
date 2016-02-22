@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.util.List;
@@ -50,6 +51,7 @@ public class NewsAdapter extends BaseAdapter {
             row = inflater.inflate(R.layout.article_row, null);
             holder.titleTextView = (TextView) row.findViewById(R.id.titleTextView);
             holder.descriptionTextView = (TextView) row.findViewById(R.id.descriptionTextView);
+//            holder.featuredImage = (ImageView) row.findViewById(R.id.imageView);
             row.setTag(holder);
         } else {
             row = convertView;
@@ -58,11 +60,13 @@ public class NewsAdapter extends BaseAdapter {
 
         holder.titleTextView.setText(current.title);
         holder.descriptionTextView.setText(current.summary);
+//        holder.featuredImage.setImageResource();
         return row;
     }
 
     private class Holder {
         TextView titleTextView;
         TextView descriptionTextView;
+//        ImageView featuredImage;
     }
 }

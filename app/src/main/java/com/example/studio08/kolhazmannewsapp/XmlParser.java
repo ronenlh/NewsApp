@@ -11,6 +11,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created by studio08 on 2/16/2016.
@@ -68,13 +70,13 @@ public class XmlParser {
         public final String title;
         public final String link;
         public final String summary;
+        public final String imageLink;
 
-
-
-        private Item(String title, String summary, String link) {
+        private Item(String title, String summary, String link, String imageLink) {
             this.title = title;
             this.summary = summary;
             this.link = link;
+            this.imageLink = imageLink;
         }
 
     }
@@ -87,6 +89,8 @@ public class XmlParser {
         String title = null;
         String description = null;
         String link = null;
+        String imageLink = null;
+        String[] descriptionArray = new String[2];
         while (parser.next() != XmlPullParser.END_TAG) {
             if (parser.getEventType() != XmlPullParser.START_TAG) {
                 continue;
@@ -97,7 +101,9 @@ public class XmlParser {
                 title = readTitle(parser);
                 Log.d("readEntry", title);
             } else if (name.equals("description")) {
-                description = readDescription(parser);
+                System.arraycopy(readDescription(parser), 0, descriptionArray, 0, 2);
+                imageLink = descriptionArray[0];
+                description = descriptionArray[1];
                 Log.d("readEntry", description);
             } else if (name.equals("link")) {
                 link = readLink(parser);
@@ -108,7 +114,7 @@ public class XmlParser {
             }
         }
         Log.d("readEntry", " ABOUT TO RETURN ITEM <-------------------OOOOOOOO");
-        return new Item(title, description, link);
+        return new Item(title, description, link, imageLink);
     }
 
     private String readText(XmlPullParser parser) throws IOException, XmlPullParserException {
@@ -127,11 +133,29 @@ public class XmlParser {
         return title;
     }
 
-    private String readDescription(XmlPullParser parser) throws IOException, XmlPullParserException {
+    Pattern pattern;
+    Matcher matcher;
+
+    private String[] readDescription(XmlPullParser parser) throws IOException, XmlPullParserException {
         parser.require(XmlPullParser.START_TAG, ns, "description");
-        String summary = readText(parser);
+        String rawDescription = readText(parser);
+        String[] result = new String[2];
+        Log.d("readDescription", "1: " + rawDescription);
+
+        result[0] = "";
+        pattern = Pattern.compile("src=\"(.*?)\"");
+        matcher = pattern.matcher(rawDescription);
+        if (matcher.find()) result[0] = matcher.group(1);
+        Log.d("readDescription", "2: " + result[0]);
+
+        // not working:
+        result[1] = "";
+        pattern = Pattern.compile("<p>(.*)(<\\/p>)"); // <p>(.*)<//p>
+        matcher = pattern.matcher(rawDescription);
+        if (matcher.find()) result[1] = matcher.group(1);
+        Log.d("readDescription", "3: " + result[1]);
         parser.require(XmlPullParser.END_TAG, ns, "description");
-        return summary;
+        return result;
     }
 
     private String readLink(XmlPullParser parser) throws IOException, XmlPullParserException {
