@@ -57,7 +57,7 @@ public class XmlParser {
 
             } else if (name.equals("item")) {
                 entries.add(readEntry(parser));
-                Log.d("entries", " entries.add(...) <----------------------OOOOOOO");
+                Log.d("entries", " entries.add(...)");
             } else {
                 skip(parser);
                 Log.d("readFeed", " skip(parser)");
@@ -96,7 +96,7 @@ public class XmlParser {
                 continue;
             }
             String name = parser.getName();
-            Log.d("readEntry", name + "<<<<<<<<<<<<<<");
+            Log.d("readEntry","name: " + name + "");
             if (name.equals("title")) {
                 title = readTitle(parser);
                 Log.d("readEntry", title);
@@ -109,11 +109,10 @@ public class XmlParser {
                 link = readLink(parser);
                 Log.d("readEntry", link);
             } else {
-                Log.d("readEntry", name + "SKIPPED");
+                Log.d("readEntry", name + " skipped");
                 skip(parser);
             }
         }
-        Log.d("readEntry", " ABOUT TO RETURN ITEM <-------------------OOOOOOOO");
         return new Item(title, description, link, imageLink);
     }
 
@@ -150,7 +149,7 @@ public class XmlParser {
 
         // not working:
         result[1] = "";
-        pattern = Pattern.compile("<p>(.*)(<\\/p>)"); // <p>(.*)<//p>
+        pattern = Pattern.compile("<p>(.*)(<\\/p>)");
         matcher = pattern.matcher(rawDescription);
         if (matcher.find()) result[1] = matcher.group(1);
         Log.d("readDescription", "3: " + result[1]);
@@ -161,14 +160,6 @@ public class XmlParser {
     private String readLink(XmlPullParser parser) throws IOException, XmlPullParserException {
         parser.require(XmlPullParser.START_TAG, ns, "link");
         String link = readText(parser);
-//        String tag = parser.getName();
-//        String relType = parser.getAttributeValue(null, "rel");
-//        if (tag.equals("link")) {
-//            if (relType.equals("alternate")){
-//                link = parser.getAttributeValue(null, "href");
-//                parser.nextTag();
-//            }
-//        }
         parser.require(XmlPullParser.END_TAG, ns, "link");
         return link;
     }

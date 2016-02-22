@@ -2,26 +2,18 @@ package com.example.studio08.kolhazmannewsapp;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.net.Uri;
 import android.os.AsyncTask;
 
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.webkit.WebView;
-import android.widget.Adapter;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.ImageView;
-import android.widget.ListAdapter;
 import android.widget.ListView;
 
-import com.google.android.gms.appindexing.Action;
 import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.common.api.GoogleApiClient;
 
@@ -31,10 +23,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
 
 /**
@@ -59,18 +47,17 @@ public class NetworkActivity extends Activity {
     private GoogleApiClient client;
 
     // Uses AsyncTask to download the XML feed from kolhazman.co.il.
-    public void loadPage() {
-
-//        if ((sPref.equals(ANY)) && (wifiConnected || mobileConnected)) {
-//            new DownloadXmlTask().execute(urlString);
-//        } else if ((sPref.equals(WIFI)) && (wifiConnected)) {
-//            new DownloadXmlTask().execute(urlString);
-//        } else {
-//            // show error
-//            new DownloadXmlTask().execute(urlString); // implemented it anyway
-//        }
-    }
-    List<XmlParser.Item> entries;
+//    public void loadPage() {
+//
+////        if ((sPref.equals(ANY)) && (wifiConnected || mobileConnected)) {
+////            new DownloadXmlTask().execute(urlString);
+////        } else if ((sPref.equals(WIFI)) && (wifiConnected)) {
+////            new DownloadXmlTask().execute(urlString);
+////        } else {
+////            // show error
+////            new DownloadXmlTask().execute(urlString); // implemented it anyway
+////        }
+//    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,9 +70,12 @@ public class NetworkActivity extends Activity {
         // See https://g.co/AppIndexing/AndroidStudio for more information.
         client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
 
+        // I have to inflate article_row to access its Views
         LayoutInflater inflater = this.getLayoutInflater();
         View articleRow = inflater.inflate(R.layout.article_row, null);
         ImageView imageView = (ImageView) articleRow.findViewById(R.id.imageView);
+
+        // Sample image to download and place in the imageView, not working right now
         new DownloadImageTask(imageView).execute("https://www.google.co.il/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png");
 
     }
@@ -148,7 +138,6 @@ public class NetworkActivity extends Activity {
             if(entries == null)
                 return;
             ListView listView = (ListView) findViewById(R.id.listView);
-//            ArrayAdapter<XmlParser.Item> arrayAdapter = new ArrayAdapter<XmlParser.Item>(getBaseContext(), android.R.layout.simple_list_item_1, entries);
             NewsAdapter newsAdapter = new NewsAdapter(NetworkActivity.this, entries);
             listView.setAdapter(newsAdapter);
             listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -162,7 +151,7 @@ public class NetworkActivity extends Activity {
 
         }
 
-        List<XmlParser.Item> entries;// = new ArrayList<>();
+        List<XmlParser.Item> entries;
 
         // Uploads XML from kolhazman.co.il/feed, parses it, and combines it with
         // HTML markup. Returns HTML string.
@@ -171,99 +160,69 @@ public class NetworkActivity extends Activity {
             // Instantiate the parser
             XmlParser xmlParser = new XmlParser();
             if(xmlParser != null) Log.d("parser", "new parser");
-//            String title = null;
-//            String url = null;
-//            String summary = null;
-//            Calendar rightNow = Calendar.getInstance();
-//            DateFormat formatter = new SimpleDateFormat("MMM dd h:mmaa");
 
-            // Checks whether the user set the preference to include summary text
-//            SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
-//            boolean pref = sharedPrefs.getBoolean("summaryPref", false);
-
+            // what is a StringBuilder and why do I have to return it?
             StringBuilder htmlString = new StringBuilder();
-//            htmlString.append("<h3>" + getResources().getString(R.string.page_title) + "</h3>");
-//            htmlString.append("<em>" + getResources().getString(R.string.updated) + " " +
-//                    formatter.format(rightNow.getTime()) + "</em>");
 
             try {
                 stream = downloadUrl(urlString);
-                if(stream != null) Log.d("stream", stream.toString() + "");
+                if(stream != null)
+                    Log.d("stream", stream.toString() + "");
+
+                // XmlParser returns a List (called "entries") of Item objects.
+                // Each Entry object represents a single post in the XML feed.
                 entries = xmlParser.parse(stream);
-                if(entries != null) {
+                if(entries != null)
                     Log.d("entries", "size: " + entries.size() + "");
-                }
+
                 // Makes sure that the InputStream is closed after the app is
                 // finished using it.
             } finally {
-                if (stream != null) {
+                if (stream != null)
                     stream.close();
-                }
             }
-
-            // XmlParser returns a List (called "entries") of Item objects.
-            // Each Entry object represents a single post in the XML feed.
-            // This section processes the entries list to combine each entry with HTML markup.
-            // Each entry is displayed in the UI as a link that optionally includes
-            // a text summary.
-//            for (XmlParser.Item item : entries) {
-//                htmlString.append("<p><a href='");
-//                htmlString.append(item.link);
-//                htmlString.append("'>" + item.title + "</a></p>");
-//                // If the user set the preference to include summary text,
-//                // adds it to the display.
-//                if (true) {  //if(pref)
-//                    htmlString.append(item.summary);
-//                }
-//            }
-
-
-//
-//            for (XmlParser.Item item : entries){
-//                Log.d("Item",item.title);
-//            }
 
             return htmlString.toString();
         }
 
-        // Given a string representation of a URL, sets up a connection and gets
-        // an input stream.
+        // Given a string representation of a URL, sets up a connection and gets an input stream.
+
         private InputStream downloadUrl(String urlString) throws IOException {
             URL url = new URL(urlString);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setReadTimeout(10000 /* milliseconds */);
-            conn.setConnectTimeout(15000 /* milliseconds */);
-            conn.setRequestMethod("GET");
-            conn.setDoInput(true);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setReadTimeout(10000 /* milliseconds */);
+            connection.setConnectTimeout(15000 /* milliseconds */);
+            connection.setRequestMethod("GET");
+            connection.setDoInput(true);
             // Starts the query
-            conn.connect();
-            return conn.getInputStream();
+            connection.connect();
+            return connection.getInputStream();
         }
 
     }
 
     private class DownloadImageTask extends AsyncTask<String, Void, Bitmap> {
-        ImageView bmImage;
+        ImageView imageView;
 
-        public DownloadImageTask(ImageView bmImage) {
-            this.bmImage = bmImage;
+        public DownloadImageTask(ImageView imageView) {
+            this.imageView = imageView;
         }
 
         protected Bitmap doInBackground(String... urls) {
             String urldisplay = urls[0];
-            Bitmap mIcon11 = null;
+            Bitmap bitmap = null;
             try {
                 InputStream in = new java.net.URL(urldisplay).openStream();
-                mIcon11 = BitmapFactory.decodeStream(in);
+                bitmap = BitmapFactory.decodeStream(in);
             } catch (Exception e) {
                 Log.e("Error", e.getMessage());
                 e.printStackTrace();
             }
-            return mIcon11;
+            return bitmap;
         }
 
         protected void onPostExecute(Bitmap result) {
-            bmImage.setImageBitmap(result);
+            imageView.setImageBitmap(result);
         }
     }
 }
